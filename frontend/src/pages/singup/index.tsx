@@ -101,7 +101,7 @@ export default function UserProfileEdit(): JSX.Element {
 					console.log(selectedImage);
 
 					await api
-						.post('auth/upload', form, {
+						.post('uploads', form, {
 							headers: { 'Content-type': 'multipart/form-data' },
 						})
 						.then((response) => {
