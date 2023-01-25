@@ -40,6 +40,7 @@ export default function UserProfileEdit(): JSX.Element {
 		imageUrl: yup.string().nullable(),
 	});
 
+	// Select image file
 	const handleChangeImage = (e: ChangeEvent<HTMLInputElement>) => {
 		if (!e.target.files || e.target.files.length === 0) {
 			return null;
@@ -55,11 +56,13 @@ export default function UserProfileEdit(): JSX.Element {
 		setSelectedImage(file);
 	};
 
+	// Handles image removal
 	const handleRemoveImage = () => {
 		setSelectedImage(undefined);
 		setImageUrl(undefined);
 	};
 
+	// Handles image preview
 	useEffect(() => {
 		let fileReader: FileReader,
 			isCancel = false;
@@ -85,12 +88,14 @@ export default function UserProfileEdit(): JSX.Element {
 		};
 	}, [selectedImage, imageUrl]);
 
+	// Cleanup form on cancel submit
 	const handleCancelSubmit = () => {
 		setUser(INITIAL_STATE);
 		setSelectedImage(undefined);
 		setImageUrl(undefined);
 	};
 
+	// Form submission
 	const handleSaveUser = async () => {
 		userSchema.isValid(user).then(async function (valid) {
 			if (valid) {
@@ -98,8 +103,8 @@ export default function UserProfileEdit(): JSX.Element {
 				if (selectedImage) {
 					const form = new FormData();
 					form.append('file', selectedImage);
-					console.log(selectedImage);
 
+					// File upload
 					await api
 						.post('uploads', form, {
 							headers: { 'Content-type': 'multipart/form-data' },
@@ -107,9 +112,6 @@ export default function UserProfileEdit(): JSX.Element {
 						.then((response) => {
 							const data = response.data;
 							userImage = data.imageUrl;
-
-							setSelectedImage(undefined);
-							setImageUrl(undefined);
 						})
 						.catch((error) => {
 							toast({
@@ -121,9 +123,13 @@ export default function UserProfileEdit(): JSX.Element {
 						});
 				}
 
-				setUser({ ...user, imageUrl: userImage });
+				// Adds imageUrl to the user request body
+				// DOESN'T WORK
+				//setUser({...user, imageUrl: userImage})
+				const requestUser = { ...user, imageUrl: userImage };
+
 				await api
-					.post('auth/signup', user)
+					.post('auth/signup', requestUser)
 					.then(async () => {
 						toast({
 							title: 'Signup successful',
@@ -131,8 +137,6 @@ export default function UserProfileEdit(): JSX.Element {
 							isClosable: true,
 							status: 'success',
 						});
-
-						setUser(INITIAL_STATE);
 					})
 					.catch((error) => {
 						toast({
@@ -144,12 +148,8 @@ export default function UserProfileEdit(): JSX.Element {
 					});
 			} else {
 				userSchema.validate(user).catch((e) => {
+					// Form errors
 					setFormError(e);
-					console.log('Panic!!!!!!!!');
-					console.log(e);
-					console.log(e.path);
-
-					console.log('Phewww!!!!');
 					toast({
 						title: 'There was a problem signing up',
 						description: String(e.message),
